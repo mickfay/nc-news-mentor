@@ -1,24 +1,29 @@
-const seed = require('../db/seeds/seed')
-const testData = require('../db/data/test-data/index.js')
-const db = require('../db/connection.js')
-const request = require('supertest')
-const app = require('../app.js')
+const request = require("supertest");
+const app = require("../app.js");
+const fs = require("fs/promises");
 
-beforeEach(() => seed(testData))
-afterAll(() => db.end());
+describe("get /api", () => {
+  test("200: Responds with an object describing all endpoints of api", () => {
+    const endpointsJSON = fs
+      .readFile(`${__dirname}/../endpoints.json`)
+      .then((data) => {
+        const endpointsObj = JSON.parse(data);
+        return endpointsObj;
+      });
 
+    const testQuery = request(app).get("/api").expect(200);
 
-describe('get /api/topics', () => {
-    test('200: Responds with array of topic objects and status code 200 ', () => {
-        return request(app).get('/api/topics').expect(200).then((response) => {
-            const topics = response.body.topics
-            expect(topics.length).toBe(3)
-            topics.forEach((topic) => {
-                expect(topic).toHaveProperty('slug')
-                expect(topic).toHaveProperty('description')
-                expect(typeof topic.description).toBe('string')
-                expect(typeof topic.description).toBe('string')
-            })
-        })
-    });
+    return Promise.all([endpointsJSON, testQuery]).then(
+      ([endpointsObj, queryOutput]) => {
+        const endpoints = queryOutput.body.endpoints;
+        const numberOfEndpoints = Object.keys(endpointsObj).length;
+        expect(Object.keys(endpoints).length).toBe(numberOfEndpoints);
+        for (key in endpoints) {
+          expect(endpoints[key]).toHaveProperty("description");
+          expect(endpoints[key]).toHaveProperty("queries");
+          expect(endpoints[key]).toHaveProperty("exampleResponse");
+        }
+      }
+    );
+  });
 });

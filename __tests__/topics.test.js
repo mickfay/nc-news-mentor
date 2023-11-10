@@ -3,7 +3,6 @@ const testData = require("../db/data/test-data/index.js");
 const db = require("../db/connection.js");
 const request = require("supertest");
 const app = require("../app.js");
-const fs = require("fs/promises");
 
 beforeEach(() => seed(testData));
 afterAll(() => db.end());

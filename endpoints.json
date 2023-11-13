@@ -23,14 +23,15 @@
     "exampleResponse": {
       "articles": [
         {
-          "article_id":  1,
+          "article_id": 1,
           "title": "Seafood substitutions are increasing",
           "topic": "cooking",
           "author": "weegembump",
           "created_at": "2018-05-30T15:59:13.341Z",
           "votes": 0,
           "comment_count": 6
-        }, {
+        },
+        {
           "title": "Article 2",
           "topic": "how to sort by date",
           "author": "gretaT",
@@ -55,6 +56,30 @@
         "votes": 100,
         "article_img_url": "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
       }
+    }
+  },
+  "GET /api/articles/:article_id/comments": {
+    "description": "serves up a json representation of all comments for a requested article",
+    "queries": [1, 2, "etc."],
+    "exampleResponse": {
+      "comments": [
+        {
+            "comment_id": 3,
+            "votes": -12,
+            "created_at": "2020-07-09T20:11:00.000Z",
+            "author": "radicalMisundersander",
+            "body": "This article is fake news",
+            "article_id": 1
+          },
+        {
+          "comment_id": 6,
+          "votes": 102,
+          "created_at": "2020-09-09T20:11:00.000Z",
+          "author": "nonsenseMan",
+          "body": "@radicalMisunderstander you don't know what you're talking about",
+          "article_id": 1
+        }
+      ]
     }
   }
 }

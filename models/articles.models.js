@@ -4,9 +4,9 @@ exports.selectArticleById = (id) => {
   return db
     .query("SELECT * FROM articles WHERE article_id = $1", [id])
     .then((response) => {
-      if (response.rows.length === 0) {
-        throw { code: 404 };
-      }
+        if(response.rows.length === 0){
+            throw {code : 404, msg : 'Article'}
+        }
       return response.rows[0];
     });
 };
@@ -25,3 +25,9 @@ exports.selectArticles = () => {
       return response.rows;
     });
 };
+
+exports.selectCommentsById = (id) => {
+    return db.query(`SELECT * FROM comments WHERE article_id = $1 ORDER BY created_at DESC;`, [id]).then((response) => {
+        return response.rows
+    })
+}

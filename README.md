@@ -7,3 +7,4 @@ To run the successfully connect to the two databases that are created for this p
 `.env.test` - to connect to the test database. This must contain `PGDATABASE=nc_news_test`
 `.env.development` - to connect to the develoment database. This must contain `PGDATABASE=nc_news`
 
+Descriptions of endpoints that are available to the api can be found in endpoints.json.

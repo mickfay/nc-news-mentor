@@ -64,13 +64,13 @@
     "exampleResponse": {
       "comments": [
         {
-            "comment_id": 3,
-            "votes": -12,
-            "created_at": "2020-07-09T20:11:00.000Z",
-            "author": "radicalMisundersander",
-            "body": "This article is fake news",
-            "article_id": 1
-          },
+          "comment_id": 3,
+          "votes": -12,
+          "created_at": "2020-07-09T20:11:00.000Z",
+          "author": "radicalMisundersander",
+          "body": "This article is fake news",
+          "article_id": 1
+        },
         {
           "comment_id": 6,
           "votes": 102,
@@ -78,6 +78,22 @@
           "author": "nonsenseMan",
           "body": "@radicalMisunderstander you don't know what you're talking about",
           "article_id": 1
+        }
+      ]
+    }
+  },
+  "POST /api/articles/:article_id/comments": {
+    "description": "Adds a comment to comments database, returning the complete comment object",
+    "queries": [1, 2, "etc..."],
+    "exampleResponse": {
+      "comment": [
+        {
+          "comment_id": 19,
+          "votes": 0,
+          "created_at": "2023-07-09T20:11:00.000Z",
+          "author": "radicalMisundersander",
+          "body": "This article is fake news",
+          "article_id": 4
         }
       ]
     }

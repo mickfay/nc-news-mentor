@@ -252,7 +252,7 @@ describe("POST /api/articles/:article_id/comments", () => {
       .expect(400)
       .then((response) => {
         expect(response.body.msg).toBe(
-          "Please provide a valid username and body"
+          "Please provide valid username and body keys"
         );
       });
   });
@@ -293,8 +293,71 @@ describe("POST /api/articles/:article_id/comments", () => {
       .expect(400)
       .then((response) => {
         expect(response.body.msg).toBe(
-          "Please provide a valid username and body"
+          "Please provide valid username and body keys"
         );
       });
   });
+});
+
+describe("PATCH /api/articles/:article_id", () => {
+  test("PATCH 200: Should return the updated article object", () => {
+    const inputVotes = { inc_votes: 1 };
+    return request(app)
+      .patch("/api/articles/1")
+      .send(inputVotes)
+      .expect(200)
+      .then((response) => {
+        const expectedArticle = {
+          article_id: 1,
+          title: "Living in the shadow of a great man",
+          topic: "mitch",
+          author: "butter_bridge",
+          body: "I find this existence challenging",
+          created_at: "2020-07-09T20:11:00.000Z",
+          votes: 101,
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+        };
+        const updatedArticle = response.body.article;
+        console.log(updatedArticle);
+        expect(updatedArticle).toMatchObject(expectedArticle);
+      });
+  });
+
+  test("PATCH 200: Should increment the votes of the article entry in the database", () => {
+    const vote1 = { inc_votes: 1 };
+    const vote2 = { inc_votes: 4 };
+    const vote3 = { inc_votes: -2 };
+    const voteArr = [vote1, vote2, vote3];
+    const promisedVotes = voteArr.map((vote) => {
+      return request(app).patch("/api/articles/1").send(vote).expect(200);
+    });
+    return Promise.all(promisedVotes)
+      .then(() => {
+        return db.query("SELECT votes FROM articles WHERE article_id = 1;");
+      })
+      .then((response) => {
+        expect(response.rows[0]).toMatchObject({ votes: 103 });
+      });
+  });
+  test("PATCH 400: Should return Bad Request message if article_id is invalid", () => {
+    const vote = { inc_votes : 4}
+    return request(app).patch('/api/articles/eggs').send(vote).expect(400).then((response) => {
+      expect(response.body.msg).toBe('Bad Request')
+    })
+  });
+  test("PATCH 404: Should return error message if article does not exist", () => {
+    const vote = { inc_votes : 3}
+    return request(app).patch('/api/articles/903').send(vote).expect(404).then((response) => {
+      expect(response.body.msg).toBe('Article not found')
+    })
+  });
+  test(
+    "PATCH 400: Should return error message if body does not include updated votes", () => {
+      const faultyVote = { name : 'Archibald'}
+      return request(app).patch('/api/articles/1').send(faultyVote).expect(400).then((response) => {
+        expect(response.body.msg).toBe('Please provide a valid inc_votes key')
+      })
+    }
+  );
 });

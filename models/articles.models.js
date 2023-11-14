@@ -48,3 +48,12 @@ exports.insertComment = (commentInfo) => {
       return response.rows[0];
     });
 };
+
+exports.updateArticleById = (parameters) => {
+  return db.query('UPDATE articles SET votes = votes + $1 WHERE article_id = $2 RETURNING *;', parameters).then((response) => {
+    if (response.rows.length === 0){
+      throw {code : 404, msg : 'Article'}
+    }
+    return response.rows[0]
+  })
+}

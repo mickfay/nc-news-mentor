@@ -1,4 +1,5 @@
 exports.handlePSQLErrors = (err, req, res, next) => {
+  console.log(err)
   if (err.code === '22P02') {
     res.status(400).send({ msg: "Bad Request" });
   } else if (
@@ -8,8 +9,11 @@ exports.handlePSQLErrors = (err, req, res, next) => {
     next({ code : 404, msg : "Article"})
 } 
 else if (err.code === "23503") {
-  res.status(400).send({ msg: "Please provide a valid username and body" });
-} else {
+  res.status(400).send({ msg: "Please provide valid username and body keys" });
+} 
+else if(err.code === '23502'){
+  res.status(400).send({msg : 'Please provide a valid inc_votes key'})
+}else {
   next(err);
 }
 };

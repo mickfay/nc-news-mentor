@@ -27,3 +27,11 @@ describe("get /api", () => {
     );
   });
 });
+
+describe('Unfound endpoints', () => {
+  test('GET 404: Should respond with 404 code when an unaccepted endpoint is requested', () => {
+    return request(app).get('/api/gugenheim').expect(404).then((response) => {
+      expect(response.body.msg).toBe('Page not found')
+    })
+  });
+});

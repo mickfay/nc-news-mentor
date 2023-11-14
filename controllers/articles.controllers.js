@@ -41,12 +41,9 @@ exports.postComment = (req, res, next) => {
   const created_at = new Date();
   const commentInfo = [0, created_at, author, body, article_id];
   if (commentInfo.includes(undefined)) {
-    throw { code: 400 };
+    throw { code: '23503' };
   }
-  selectArticleById(article_id)
-    .then(() => {
-      return insertComment(commentInfo);
-    })
+  insertComment(commentInfo)
     .then((comment) => {
       res.status(201).send({ comment });
     })

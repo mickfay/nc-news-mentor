@@ -1,12 +1,13 @@
 const db = require("../db/connection.js");
+const format = require("pg-format");
 
 exports.selectArticleById = (id) => {
   return db
     .query("SELECT * FROM articles WHERE article_id = $1", [id])
     .then((response) => {
-        if(response.rows.length === 0){
-            throw {code : 404, msg : 'Article'}
-        }
+      if (response.rows.length === 0) {
+        throw { code: 404, msg: "Article" };
+      }
       return response.rows[0];
     });
 };
@@ -27,7 +28,23 @@ exports.selectArticles = () => {
 };
 
 exports.selectCommentsById = (id) => {
-    return db.query(`SELECT * FROM comments WHERE article_id = $1 ORDER BY created_at DESC;`, [id]).then((response) => {
-        return response.rows
-    })
-}
+  return db
+    .query(
+      `SELECT * FROM comments WHERE article_id = $1 ORDER BY created_at DESC;`,
+      [id]
+    )
+    .then((response) => {
+      return response.rows;
+    });
+};
+
+exports.insertComment = (commentInfo) => {
+  return db
+    .query(
+      `INSERT INTO comments(votes, created_at, author, body, article_id) VALUES ($1, $2, $3, $4, $5) RETURNING *;`,
+      commentInfo
+    )
+    .then((response) => {
+      return response.rows[0];
+    });
+};

@@ -7,7 +7,7 @@ const app = require("../app.js");
 beforeEach(() => seed(testData));
 afterAll(() => db.end());
 
-describe("/api/article/:article_id", () => {
+describe("GET /api/article/:article_id", () => {
   test("GET 200: Should return a requested article with matching article_id, with status code 200", () => {
     return request(app)
       .get("/api/articles/1")
@@ -126,20 +126,175 @@ describe("GET /api/articles/:article_id/comments", () => {
         });
       });
   });
-  test('GET 200: Should return an empty array if article has no comments', () => {
-    return request(app).get('/api/articles/12/comments').expect(200).then((response) => {
-        expect(response.body.comments).toEqual([])
-    })
+  test("GET 200: Should return an empty array if article has no comments", () => {
+    return request(app)
+      .get("/api/articles/12/comments")
+      .expect(200)
+      .then((response) => {
+        expect(response.body.comments).toEqual([]);
+      });
   });
-  test('GET 400: Should return a Bad request message if passed a article_id that is not a number', () => {
-    return request(app).get('/api/articles/egg/comments').expect(400).then((response) => {
-        expect(response.body.msg).toBe('Bad Request')
-    })
+  test("GET 400: Should return a Bad request message if passed a article_id that is not a number", () => {
+    return request(app)
+      .get("/api/articles/egg/comments")
+      .expect(400)
+      .then((response) => {
+        expect(response.body.msg).toBe("Bad Request");
+      });
   });
   test('GET 404: Should return an "article does not exist" message if passed a valid artice_id that does not exist', () => {
-    return request(app).get('/api/articles/98/comments').expect(404).then((response) => {
-        expect(response.body.msg).toBe('Article not found')
-    })
-  })
+    return request(app)
+      .get("/api/articles/98/comments")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe("Article not found");
+      });
+  });
+});
 
+describe("POST /api/articles/:article_id/comments", () => {
+  test("POST 201: Should return the posted comment object", () => {
+    const exampleComment = {
+      username: "butter_bridge",
+      body: "This article is fake news",
+    };
+    return request(app)
+      .post("/api/articles/2/comments")
+      .send(exampleComment)
+      .expect(201)
+      .then((response) => {
+        const expectedResult = {
+          comment_id: expect.any(Number),
+          votes: 0,
+          created_at: expect.any(String),
+          author: "butter_bridge",
+          body: "This article is fake news",
+          article_id: 2,
+        };
+        expect(response.body.comment).toMatchObject(expectedResult);
+      });
+  });
+  test("POST 201: Should add a comment to comments database", () => {
+    const exampleComment = {
+      username: "butter_bridge",
+      body: "This article is fake news",
+    };
+
+    return request(app)
+      .post("/api/articles/2/comments")
+      .send(exampleComment)
+      .expect(201)
+      .then(() => {
+        return db.query(
+          "SELECT * FROM comments ORDER BY created_at DESC LIMIT 1;"
+        );
+      })
+      .then((databaseCheck) => {
+        const result = databaseCheck.rows[0];
+        const expectedResult = {
+          article_id: 2,
+          author: "butter_bridge",
+          body: "This article is fake news",
+          comment_id: 19,
+          votes: 0,
+        };
+        expect(result).toMatchObject({
+          ...expectedResult,
+          created_at: expect.any(Date),
+        });
+      });
+  });
+  test("POST 201: comment_id increments on subsequent posts", () => {
+    const exampleComment = {
+      username: "butter_bridge",
+      body: "This article is fake news",
+    };
+
+    return request(app)
+      .post("/api/articles/4/comments")
+      .send(exampleComment)
+      .expect(201)
+      .then(() => {
+        const exampleComment2 = {
+          username: "butter_bridge",
+          body: "This article is also fake news",
+        };
+        return request(app)
+          .post("/api/articles/2/comments")
+          .send(exampleComment2)
+          .expect(201);
+      })
+      .then(() => {
+        return (commentQuery = db.query(
+          "SELECT * FROM comments ORDER BY created_at DESC LIMIT 2;"
+        ));
+      })
+      .then((response) => {
+        const recentComments = response.rows;
+        recentComments.forEach((comment) => {
+          if (comment.article_id === 2) {
+            expect(comment.body).toBe("This article is also fake news");
+            expect(comment.comment_id).toBe(20);
+          } else if (comment.article_id === 4) {
+            expect(comment.body).toBe("This article is fake news");
+            expect(comment.comment_id).toBe(19);
+          }
+        });
+      });
+  });
+  test("POST 400: Should return an error messsage if missing username and/or body", () => {
+    const exampleComment = {
+      username: "butter_bridge",
+    };
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send(exampleComment)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.msg).toBe(
+          "Please provide a valid username and body"
+        );
+      });
+  });
+  test("POST 404: Should respond with error message if article_id does not exist", () => {
+    const exampleComment = {
+      username: "butter_bridge",
+      body: "This article is fake news",
+    };
+    return request(app)
+      .post("/api/articles/93/comments")
+      .send(exampleComment)
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe("Article not found");
+      });
+  });
+  test("POST 400: Should respond with bad request message if invalid article_id", () => {
+    const exampleComment = {
+      username: "butter_bridge",
+      body: "This article is fake news",
+    };
+    return request(app)
+      .post("/api/articles/eggs/comments")
+      .send(exampleComment)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.msg).toBe("Bad Request");
+      });
+  });
+  test("POST 400: Should return error message if requested author doesn't exist", () => {
+    const exampleComment = {
+      username: "gretaT",
+      body: "This article is fake news",
+    };
+    return request(app)
+      .post("/api/articles/4/comments")
+      .send(exampleComment)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.msg).toBe(
+          "Please provide a valid username and body"
+        );
+      });
+  });
 });
